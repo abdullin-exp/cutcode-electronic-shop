@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Http\Kernel;
 use Carbon\CarbonInterval;
+use Illuminate\Database\Connection;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
