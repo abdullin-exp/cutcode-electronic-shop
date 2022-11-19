@@ -3,30 +3,21 @@
 namespace App\Providers;
 
 use Faker\Provider\Base;
+use Illuminate\Support\Facades\Storage;
 
 class FakerImageProvider extends Base
 {
-    public function thumbnail(string $dir): string {
-        $testImagesPath = base_path('tests/Fixtures/images/' . $dir);
-        if (!file_exists($testImagesPath)) return '';
-
-        $testImages = scandir($testImagesPath);
-        $testImages = array_diff($testImages, ['..', '.']);
-        $testImages = array_values($testImages);
-
-        $testImageKey = rand(0, count($testImages) - 1);
-        $randomTestImage = $testImages[$testImageKey];
-        $randomTestImagePath = $testImagesPath . '/' . $randomTestImage;
-        $fakeImagePath = base_path('storage/app/public/images/' . $dir);
-
-        if (!file_exists($fakeImagePath)) {
-            mkdir($fakeImagePath, 0777, true);
+    public function fixturesImage(string $fixturesDir, string $storageDir): string {
+        if (!Storage::exists($storageDir)) {
+            Storage::makeDirectory($storageDir);
         }
 
-        $randomFakeImagePath = $fakeImagePath . '/' . $randomTestImage;
+        $file = $this->generator->file(
+            base_path('tests/Fixtures/images/' . $fixturesDir),
+            Storage::path($storageDir),
+            false
+        );
 
-        copy($randomTestImagePath, $randomFakeImagePath);
-
-        return '/storage/images/' . $dir . '/' . $randomTestImage;
+        return '/storage/' . trim($storageDir, '/') . '/' . $file;
     }
 }

@@ -8,30 +8,57 @@ use Illuminate\Database\Eloquent\Model;
 
 trait HasSlug
 {
-    protected static int $i = 1;
-
     protected static function bootHasSlug()
     {
         static::creating(function(Model $item) {
-            $item->slug = $item->slug
-                ?? str($item->{self::slugFrom()})
-                    ->append(self::suffix($item))
-                    ->slug();
+            $item->makeSlug();
         });
     }
 
-    public static function slugFrom(): string
+    protected function makeSlug(): void
+    {
+        if (!$this->{$this->slugColumn()}) {
+            $slug = $this->slugUnique(
+                str($this->{$this->slugFrom()})
+                    ->slug()
+                    ->value()
+            );
+
+            $this->{$this->slugColumn()} = $slug;
+        }
+    }
+
+    protected function slugColumn(): string
+    {
+        return 'slug';
+    }
+
+    protected function slugFrom(): string
     {
         return 'title';
     }
 
-    public static function suffix($item): string
+    protected function slugUnique(string $slug): string
     {
-        $count = self::query()->where(self::slugFrom(), $item->{self::slugFrom()})->count();
-        if ($count > 0) {
-            return '-' . self::$i++;
+        $originalSlug = $slug;
+        $i = 0;
+
+        while ($this->isSlugExists($slug)) {
+            $i++;
+
+            $slug = $originalSlug . '-' . $i;
         }
 
-        return '';
+        return $slug;
+    }
+
+    private function isSlugExists(string $slug): bool
+    {
+        $query = $this->newQuery()
+            ->where(self::slugColumn(), $slug)
+            ->where($this->getKeyName(), '!=', $this->getKey())
+            ->withoutGlobalScopes();
+
+        return $query->exists();
     }
 }
