@@ -18,7 +18,7 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
-    public function index(): Factory|View|Application
+    public function index(): Factory|View|Application|RedirectResponse
     {
         return view('auth.index');
     }
@@ -42,8 +42,6 @@ class AuthController extends Controller
 
     public function signIn(SignInFormRequest $request): RedirectResponse
     {
-        // TODO 3rd lesson Rate Limit
-
         if (!auth()->attempt($request->validated())) {
             return back()->withErrors([
                 'email.required' => 'Введите E-mail',
@@ -88,11 +86,13 @@ class AuthController extends Controller
             $request->only('email')
         );
 
-        // TODO 3rd lesson Flash
+        if ($status === Password::RESET_LINK_SENT) {
+            flash()->info(__($status));
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with(['message' => __($status)])
-            : back()->withErrors(['email' => __($status)]);
+            return back();
+        }
+
+        return back()->withErrors(['email' => __($status)]);
     }
 
     public function resetPassword(ResetPasswordRequest $request): RedirectResponse
@@ -110,9 +110,13 @@ class AuthController extends Controller
             }
         );
 
-        return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('message', __($status))
-            : back()->withErrors(['email' => [__($status)]]);
+        if ($status === Password::PASSWORD_RESET) {
+            flash()->info(__($status));
+
+            return redirect()->route('login');
+        }
+
+        return back()->withErrors(['email' => [__($status)]]);
     }
 
     public function github(): \Symfony\Component\HttpFoundation\RedirectResponse|RedirectResponse
@@ -124,8 +128,6 @@ class AuthController extends Controller
     public function githubCallback(): RedirectResponse
     {
         $githubUser = Socialite::driver('github')->user();
-
-        // TODO 3rd lesson move to custom table
 
         $user = User::query()->updateOrCreate([
             'github_id' => $githubUser->id,

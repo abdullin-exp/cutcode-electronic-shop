@@ -19,6 +19,7 @@ Route::controller(AuthController::class)->group(function () {
         ->name('login');
 
     Route::post('/login', 'signIn')
+        ->middleware('throttle:auth')
         ->name('signIn');
 
     // TODO 3rd lesson
@@ -26,6 +27,7 @@ Route::controller(AuthController::class)->group(function () {
         ->name('signUp');
 
     Route::post('/sign-up', 'store')
+        ->middleware('throttle:auth')
         ->name('store');
 
     Route::delete('/logout', 'logOut')
