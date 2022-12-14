@@ -1,0 +1,36 @@
+version: "3.5"
+services:
+    nginx:
+        build:
+            context: .
+            dockerfile: docker/nginx/Dockerfile
+        container_name: cutcode_nginx
+        volumes:
+            - ./:/var/www/cutcode-shop-docker
+        ports:
+            - "127.0.0.1:80:80"
+        depends_on:
+            - php-fpm
+        links:
+            - php-fpm
+    php-fpm:
+        build:
+            context: .
+            dockerfile: docker/php-fpm/Dockerfile
+        container_name: cutcode_php-fpm
+        volumes:
+            - ./:/var/www/cutcode-shop-docker
+        links:
+            - mysql
+    mysql:
+        image: amd64/mysql:5.7
+        container_name: cutcode_mysql
+        ports:
+            - 33061:3306
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=cutcode_shop
+        volumes:
+            - "./docker/volume/mysql:/var/lib/mysql"
+
+
