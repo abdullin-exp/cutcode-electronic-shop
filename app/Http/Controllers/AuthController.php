@@ -16,8 +16,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Password;
 use Laravel\Socialite\Facades\Socialite;
 
+/**
+ *
+ */
 class AuthController extends Controller
 {
+    /**
+     * @return Factory|View|Application|RedirectResponse
+     */
     public function index(): Factory|View|Application|RedirectResponse
     {
         return view('auth.index');
