@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Domain\Auth\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Laravel\Socialite\Facades\Socialite;
+
+/**
+ *
+ */
+class SocialAuthController extends Controller
+{
+    public function redirect(string $driver): \Symfony\Component\HttpFoundation\RedirectResponse|RedirectResponse
+    {
+        try {
+            return Socialite::driver($driver)
+                ->redirect();
+        } catch (\Throwable $e) {
+            throw new \DomainException('Произошла ошибка или драйвер не поддерживается');
+        }
+    }
+
+    public function callback(string $driver): RedirectResponse
+    {
+        if ($driver !== 'github') {
+            throw new \DomainException('Драйвер не поддерживается');
+        }
+
+        $socialUser = Socialite::driver($driver)->user();
+
+        $user = User::query()->updateOrCreate([
+            $driver . '_id' => $socialUser->id,
+        ], [
+            'name' => $socialUser->name,
+            'email' => $socialUser->email,
+            'password' => bcrypt(str()->random(20))
+        ]);
+
+        auth()->login($user);
+
+        return redirect()->intended(route('home'));
+    }
+}
