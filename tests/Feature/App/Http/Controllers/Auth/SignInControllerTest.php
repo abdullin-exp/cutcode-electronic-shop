@@ -55,6 +55,24 @@ class SignInControllerTest extends TestCase
      * @test
      * @return void
      */
+    public function it_handle_fail(): void
+    {
+        $request = SignInFormRequest::factory()->create([
+            'email' => 'notfound@cutcode.ru',
+            'password' => str()->random(10)
+        ]);
+
+        $this->post(action([SignInController::class, 'handle']), $request)
+            ->assertInvalid(); // под вопросом
+            //->assertInvalid(['email']);
+
+        $this->assertGuest();
+    }
+
+    /**
+     * @test
+     * @return void
+     */
     public function it_logout_success(): void
     {
         $user = UserFactory::new()->create([
@@ -66,5 +84,15 @@ class SignInControllerTest extends TestCase
             ->delete(action([SignInController::class, 'logOut']));
 
         $this->assertGuest();
+    }
+
+    /**
+     * @test
+     * @return void
+     */
+    public function it_logout_guest_middleware_fail(): void
+    {
+        $this->delete(action([SignInController::class, 'logOut']))
+            ->assertRedirect(route('home'));
     }
 }
