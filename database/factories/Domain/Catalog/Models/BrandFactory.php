@@ -1,14 +1,17 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Domain\Catalog\Models;
 
+use Domain\Catalog\Models\Brand;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Brand>
+ * @extends Factory<Brand>
  */
 class BrandFactory extends Factory
 {
+    protected $model = Brand::class;
+
     public function definition(): array
     {
         return [

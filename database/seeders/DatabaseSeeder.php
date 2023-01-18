@@ -2,19 +2,19 @@
 
 namespace Database\Seeders;
 
-use App\Models\Brand;
-use App\Models\Category;
-use App\Models\Product;
+use Database\Factories\Domain\Catalog\Models\BrandFactory;
+use Database\Factories\Domain\Catalog\Models\CategoryFactory;
+use Database\Factories\ProductFactory;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        Brand::factory(20)->create();
+        BrandFactory::new()->count(20)->create();
 
-        Category::factory(10)
-            ->has(Product::factory(rand(5, 15)))
+        CategoryFactory::new()->count(10)
+            ->has(ProductFactory::new()->count(rand(5, 15)))
             ->create();
     }
 }
