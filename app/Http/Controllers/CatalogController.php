@@ -39,15 +39,9 @@ class CatalogController extends Controller
              })
             ->paginate(6);
 
-        $brands = Brand::query()
-            ->select(['id', 'title'])
-            ->has('products')
-            ->get();
-
         return view('catalog.index', [
             'products' => $products,
             'categories' => $categories,
-            'brands' => $brands,
             'category' => $category
         ]);
     }
