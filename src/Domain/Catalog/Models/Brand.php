@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Catalog\Models;
 
-use App\Models\Product;
+use Domain\Product\Models\Product;
 use Domain\Catalog\Collections\BrandCollection;
 use Domain\Catalog\QueryBuilders\BrandQueryBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

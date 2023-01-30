@@ -2,17 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Domain\Product\Models;
 
-use Domain\Catalog\Facades\Sorter;
+use App\Jobs\ProductJsonProperties;
 use Domain\Catalog\Models\Brand;
 use Domain\Catalog\Models\Category;
-use Illuminate\Contracts\Database\Eloquent\Builder;
+use Domain\Product\QueryBuilders\ProductQueryBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Pipeline\Pipeline;
 use Laravel\Scout\Attributes\SearchUsingFullText;
 use Support\Casts\PriceCast;
 use Support\Traits\Models\HasSlug;
@@ -20,7 +19,7 @@ use Support\Traits\Models\HasThumbnail;
 use Laravel\Scout\Searchable;
 
 /**
- *
+ * @method static Product|ProductQueryBuilder query()
  */
 class Product extends Model
 {
@@ -37,36 +36,33 @@ class Product extends Model
         'thumbnail',
         'on_page_home',
         'sorting',
-        'text'
+        'text',
+        'json_properties'
     ];
 
     protected $casts = [
-        'price' => PriceCast::class
+        'price' => PriceCast::class,
+        'json_properties' => 'array'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function (Product $product) {
+            ProductJsonProperties::dispatch($product)
+                ->delay(now()->addSeconds(10));
+        });
+    }
 
     protected function thumbnailDir(): string
     {
         return 'products';
     }
 
-    public function scopeFiltered(Builder $query)
+    public function newEloquentBuilder($query)
     {
-        return app(Pipeline::class)
-            ->send($query)
-            ->through(filters())
-            ->thenReturn();
-    }
-
-    public function scopeSorted(Builder $query)
-    {
-        Sorter::run($query);
-    }
-
-    public function scopeHomePage(Builder $query)
-    {
-        $query->where('on_home_page', true)
-            ->orderBy('sorting')
-            ->limit(6);
+        return new ProductQueryBuilder($query);
     }
 
     #[SearchUsingFullText(['title', 'text'])]
