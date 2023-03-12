@@ -6,6 +6,7 @@ use Support\Flash\Flash;
 use Domain\Catalog\Filters\FilterManager;
 use Domain\Catalog\Sorters\Sorter;
 use Domain\Catalog\Models\Category;
+use Domain\Cart\CartManager;
 
 if (!function_exists('sorter')) {
     function sorter(): Sorter
@@ -43,5 +44,12 @@ if (!function_exists('filter_url')) {
             ...$params,
             'category' => $category
         ]);
+    }
+}
+
+if (!function_exists('cart')) {
+    function cart(): CartManager
+    {
+        return app(CartManager::class);
     }
 }
