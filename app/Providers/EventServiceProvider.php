@@ -2,11 +2,14 @@
 
 namespace App\Providers;
 
+use App\Events\AfterSessionRegenerated;
 use App\Listeners\SendEmailNewUserListener;
 use App\Observers\CategoryObserver;
+use Domain\Cart\CartManager;
 use Domain\Catalog\Models\Category;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Event;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -30,6 +33,12 @@ class EventServiceProvider extends ServiceProvider
     public function boot()
     {
         Category::observe(new CategoryObserver());
+        Event::listen(AfterSessionRegenerated::class, function (AfterSessionRegenerated $event) {
+            app(CartManager::class)->updateStorageId(
+                $event->old,
+                $event->current,
+            );
+        });
     }
 
     /**

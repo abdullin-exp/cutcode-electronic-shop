@@ -21,10 +21,12 @@ services:
             dockerfile: docker/php-fpm/Dockerfile
         container_name: cutcode_php-fpm
         working_dir: /var/www/cutcode-shop-docker
-        environment:
-            - DOCROOT=public
         volumes:
             - ./:/var/www/cutcode-shop-docker
+            - ./docker/php-fpm:/usr/local/etc/php/custom.d
+        environment:
+            - PHP_INI_SCAN_DIR=/usr/local/etc/php/custom.d:/usr/local/etc/php/conf.d
+            - DOCROOT=public
         links:
             - mysql
     mysql:

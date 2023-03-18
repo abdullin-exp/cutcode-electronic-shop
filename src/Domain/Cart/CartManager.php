@@ -7,6 +7,7 @@ namespace Domain\Cart;
 use Domain\Cart\Contracts\CartIdentityStorageContract;
 use Domain\Cart\Models\Cart;
 use Domain\Cart\Models\CartItem;
+use Domain\Cart\StorageIdentities\FakeIdentityStorage;
 use Domain\Product\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,11 @@ final class CartManager
     )
     {
 
+    }
+
+    public static function fake(): void
+    {
+        app()->bind(CartIdentityStorageContract::class, FakeIdentityStorage::class);
     }
 
     public function add(Product $product, int $quantity = 1, array $optionValues = []): Model|Builder
@@ -98,7 +104,9 @@ final class CartManager
 
     public function truncate(): void
     {
-        $this->get()?->delete();
+        if ($this->get()) {
+            $this->get()->delete();
+        }
 
         $this->forgetCache();
     }
@@ -114,7 +122,11 @@ final class CartManager
 
     public function cartItems(): Collection
     {
-        return $this->get()?->cartItems ?? collect([]);
+        if (!$this->get()) {
+            return collect([]);
+        }
+
+        return $this->get()->cartItems;
     }
 
     public function items(): Collection
@@ -143,5 +155,12 @@ final class CartManager
                 return $item->amount->raw();
             })
         );
+    }
+
+    public function updateStorageId(string $old, string $current): void
+    {
+        Cart::query()
+            ->where('storage_id', $old)
+            ->update($this->storedData($current));
     }
 }
